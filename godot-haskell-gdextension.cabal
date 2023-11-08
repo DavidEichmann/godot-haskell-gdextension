@@ -1,0 +1,57 @@
+cabal-version: 2.0
+
+-- This file has been generated from package.yaml by hpack version 0.35.1.
+--
+-- see: https://github.com/sol/hpack
+
+name:           godot-haskell-gdextension
+version:        4.1.0.0
+synopsis:       Haskell bindings for the Godot game engine API
+description:    This package contains Haskell bindings for GDExtension and the Godot API. For details and examples, see README.md
+category:       Web
+homepage:       
+bug-reports:    
+author:         David Eichmann
+maintainer:     
+copyright:      2018 David Eichmann
+license:        Apache-2.0
+license-file:   LICENSE
+build-type:     Simple
+
+library
+    build-tools: c2hs
+    include-dirs:
+        api
+    includes: 
+        gdextension_interface.h
+    hs-source-dirs:
+        src
+    exposed-modules:
+        GodotApi
+    build-depends:
+        base
+    default-language: Haskell2010
+
+foreign-library hs_gdext_example
+    type: native-shared
+    if os(Windows)
+        options: standalone
+    c-sources: example/cbits/flib.c
+    hs-source-dirs: example/flib
+    other-modules:
+        FLib
+    build-depends:
+        base
+        , godot-haskell-gdextension
+    default-language: GHC2021
+    ghc-options:
+        -Wall
+        -threaded
+        -fwarn-unused-do-bind
+        -fwarn-tabs
+        -fwarn-incomplete-uni-patterns
+        -fwarn-incomplete-record-updates
+        -Wno-unticked-promoted-constructors
+    if os(Windows)
+        ghc-options:
+        ffi/cbits/flib.def
