@@ -10,7 +10,8 @@ config_version=5
 
 [application]
 
-config/name="HsExtExample"
+config/name="godot-haskell-gdextension-example"
+run/main_scene="res://Main.tscn"
 config/features=PackedStringArray("4.1", "GL Compatibility")
 config/icon="res://icon.svg"
 

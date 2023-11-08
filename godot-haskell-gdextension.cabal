@@ -19,11 +19,12 @@ license-file:   LICENSE
 build-type:     Simple
 
 library
-    build-tools: c2hs
-    include-dirs:
+    include-dirs: 
         api
     includes: 
         gdextension_interface.h
+    build-tool-depends:
+        c2hs:c2hs
     hs-source-dirs:
         src
     exposed-modules:
@@ -54,4 +55,4 @@ foreign-library hs_gdext_example
         -Wno-unticked-promoted-constructors
     if os(Windows)
         ghc-options:
-        ffi/cbits/flib.def
+            ffi/cbits/flib.def
