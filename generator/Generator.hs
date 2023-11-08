@@ -1,5 +1,7 @@
 {-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE PatternGuards #-}
+{-# LANGUAGE RecordWildCards #-}
 
 import qualified Data.Text.Lazy as T
 import Language.C
@@ -9,12 +11,39 @@ import System.IO.Unsafe (unsafePerformIO)
 import Text.Pretty.Simple (pPrint, pShow)
 
 main :: IO ()
-main = putStrLn (unlines typeDefs)
+main = putStrLn $ unlines $ map show $ typeDefs
 
 headerPath :: String
 headerPath = "api/gdextension_interface.h"
 
-typeDefs :: [String]
+data TypeMod
+  = PtrConst
+  | Ptr
+
+-- | Describes a function pointer type
+data FunctionTypeDef = FunctionTypeDef
+  { name :: String,
+    -- | The return type
+    returnType :: String,
+    -- | Modifiers to the return type
+    returnTypeMod :: Maybe TypeMod,
+    -- | TODO function arguments
+    args :: [()]
+  }
+
+instance Show FunctionTypeDef where
+  show FunctionTypeDef {..} =
+    ( case returnTypeMod of
+        Nothing -> ""
+        Just Ptr -> "* "
+        Just PtrConst -> "* const "
+    )
+      ++ returnType
+      ++ " "
+      ++ name
+      ++ "(...)"
+
+typeDefs :: [FunctionTypeDef]
 typeDefs = goCTranslUnit header
   where
     isGodot nodeInfo = fileOfNode nodeInfo == Just headerPath
@@ -51,12 +80,21 @@ typeDefs = goCTranslUnit header
                           CDoubleType _ -> Just "double"
                           _ -> Nothing
                       ) ->
-                      [ (if isPtrReturn then "*" else "")
-                          ++ (if isConst then " const " else "")
-                          ++ returnType
-                          ++ " "
-                          ++ functionName
-                          ++ "(...)"
+                      [ FunctionTypeDef
+                          { name = functionName,
+                            returnType,
+                            returnTypeMod =
+                              if isConst
+                                then
+                                  if isPtrReturn
+                                    then Just PtrConst
+                                    else error "const but not ptr!"
+                                else
+                                  if isPtrReturn
+                                    then Just Ptr
+                                    else Nothing,
+                            args = [] -- TODO
+                          }
                       ]
               -- Structs
               CDecl [(CStorageSpec (CTypedef (NodeInfo _ _ _))), CTypeSpec (CSUType _ _)] _ _ -> []
@@ -64,7 +102,7 @@ typeDefs = goCTranslUnit header
               CDecl [(CStorageSpec (CTypedef (NodeInfo _ _ _))), CTypeSpec (CEnumType _ _)] _ _ -> []
               -- Non-functions
               CDecl _ [(Just (CDeclr _ xs _ _ _), _, _)] _ | not (isFunc xs) -> []
-              x -> ["Handle this!:\n" ++ T.unpack (pShow x)]
+              x -> error $ "Handle this!:\n" ++ T.unpack (pShow x)
         where
           isFunc derDecs =
             any
