@@ -23,15 +23,15 @@ godot --path ./example/godot
 
 ## Development
 
-How this library is built
+How this library is developed
 
 ```bash
 # We must first dump the godot header file and api json file
 cd api
 godot4 --dump-extension-api --dump-gdextension-interface
 
-# Then we must manually :-( update the src/GodotApi.chs file to match that of gdextension_interface.h
-
+# Then we must manually update the src/GodotApi.chs file to match that of gdextension_interface.h
+# ...  More to come :-)
 ```
 
 

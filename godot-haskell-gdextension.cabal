@@ -33,6 +33,17 @@ library
         base
     default-language: Haskell2010
 
+executable generator
+    hs-source-dirs:
+        generator
+    main-is:
+        Generator.hs
+    build-depends:
+        base,
+        language-c,
+        pretty-simple,
+        text
+
 foreign-library hs_gdext_example
     type: native-shared
     if os(Windows)
