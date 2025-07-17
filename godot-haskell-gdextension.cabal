@@ -1,4 +1,4 @@
-cabal-version: 2.0
+cabal-version: 3.0
 
 -- This file has been generated from package.yaml by hpack version 0.35.1.
 --
@@ -9,19 +9,19 @@ version:        4.1.0.0
 synopsis:       Haskell bindings for the Godot game engine API
 description:    This package contains Haskell bindings for GDExtension and the Godot API. For details and examples, see README.md
 category:       Web
-homepage:       
-bug-reports:    
+homepage:
+bug-reports:
 author:         David Eichmann
-maintainer:     
+maintainer:
 copyright:      2018 David Eichmann
 license:        Apache-2.0
 license-file:   LICENSE
 build-type:     Simple
 
 library
-    include-dirs: 
+    include-dirs:
         api
-    includes: 
+    includes:
         gdextension_interface.h
     build-tool-depends:
         c2hs:c2hs
@@ -31,13 +31,14 @@ library
         GodotApi
     build-depends:
         base
-    default-language: Haskell2010
+    default-language: GHC2021
 
 executable generator
     hs-source-dirs:
         generator
     main-is:
         Generator.hs
+    default-language: GHC2021
     build-depends:
         base,
         language-c,
