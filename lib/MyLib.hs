@@ -9,5 +9,5 @@ import Language.Haskell.TH (Q, runIO)
 import Language.Haskell.TH.Syntax (Exp, Lift (lift), addDependentFile, lift)
 import TH
 
-godotExtensionApi :: Value
-godotExtensionApi = $$(godotExtensionApi' "./godot-api/extension_api.json")
+-- godotExtensionApi :: Value
+-- godotExtensionApi = $$(godotExtensionApi' "./godot-api/extension_api_4.6.json")
