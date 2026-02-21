@@ -1,0 +1,23 @@
+[configuration]
+
+entry_symbol = "godot_ext_init"
+compatibility_minimum = "4.1"
+
+[libraries]
+
+macos.debug = "res://bin/libhs_gdext_example.framework"
+macos.release = "res://bin/libhs_gdext_example.framework"
+windows.debug.x86_32 = "res://bin/libhs_gdext_example.dll"
+windows.release.x86_32 = "res://bin/libhs_gdext_example.dll"
+windows.debug.x86_64 = "res://bin/libhs_gdext_example.dll"
+windows.release.x86_64 = "res://bin/libhs_gdext_example.dll"
+linux.debug.x86_64 = "res://bin/libhs_gdext_example.so"
+linux.release.x86_64 = "res://bin/libhs_gdext_example.so"
+linux.debug.arm64 = "res://bin/libhs_gdext_example.so"
+linux.release.arm64 = "res://bin/libhs_gdext_example.so"
+linux.debug.rv64 = "res://bin/libhs_gdext_example.so"
+linux.release.rv64 = "res://bin/libhs_gdext_example.so"
+android.debug.x86_64 = "res://bin/libhs_gdext_example.so"
+android.release.x86_64 = "res://bin/libhs_gdext_example.so"
+android.debug.arm64 = "res://bin/libhs_gdext_example.so"
+android.release.arm64 = "res://bin/libhs_gdext_example.so"
