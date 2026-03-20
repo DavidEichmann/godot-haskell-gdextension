@@ -64,7 +64,8 @@ library
     other-modules:
         GodotExtensionApi,
         GodotExtensionInterface,
-        TH
+        TH,
+        TValue
 
     -- Modules included in this library but not exported.
     -- other-modules:
