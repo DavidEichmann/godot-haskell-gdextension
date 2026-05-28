@@ -1,0 +1,220 @@
+{-# LANGUAGE DerivingStrategies #-}
+{-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE LambdaCase #-}
+{-# LANGUAGE OverloadedStrings #-}
+{-# LANGUAGE NoFieldSelectors #-}
+
+module GdExtensionInterface where
+
+import Data.Aeson
+import Data.Aeson.Types (Parser)
+import Data.ByteString.Lazy qualified as BS
+import Data.Function ((&))
+import Data.Map (Map)
+import Data.Map qualified as M
+import Data.Maybe (listToMaybe, mapMaybe)
+import Data.Text (Text)
+import Data.Text qualified as T
+import Data.Text.IO qualified as T
+import ExtensionApi (Enum (Enum))
+
+type TODO = ()
+
+todo :: a
+todo = undefined
+
+data GdExtensionInterface = GdExtensionInterface
+  { copyright :: Text,
+    formatVersion :: Int,
+    types :: [Type],
+    interface :: [InterfaceItem]
+  }
+  deriving stock (Show)
+
+instance FromJSON GdExtensionInterface where
+  parseJSON = withObject "GdExtensionInterface" $ \o ->
+    GdExtensionInterface
+      <$> getMultilineText o "_copyright"
+      <*> o .: "format_version"
+      <*> o .: "types"
+      <*> o .: "interface"
+
+-- <*> o .: "interface"
+
+data Type = Type
+  { description :: Maybe Text,
+    name :: Text,
+    deprecated :: Maybe Deprecated,
+    typeDesc :: TypeDesc
+  }
+  deriving stock (Show)
+
+instance FromJSON Type where
+  parseJSON = withObject "Type" $ \o ->
+    Type
+      <$> getMultilineTextMay o "description"
+      <*> o .: "name"
+      <*> o .:? "deprecated"
+      <*> ( do
+              kind <- o .: "kind"
+              case kind of
+                Kind_Enum ->
+                  TypeDesc_Enum
+                    <$> o .:? "is_bitfield" .!= False
+                    <*> o .: "values"
+                Kind_Handle ->
+                  TypeDesc_Handle
+                    <$> o .:? "parent"
+                    <*> o .:? "is_const" .!= False
+                    <*> o .:? "is_uninitialized" .!= False
+                Kind_Alias -> TypeDesc_Alias <$> o .: "type"
+                Kind_Struct -> TypeDesc_Struct <$> o .: "members"
+                Kind_Function ->
+                  TypeDesc_Function
+                    <$> o .: "arguments"
+                    <*> o .:? "return_value"
+          )
+
+data Deprecated = Deprecated
+  { since :: Text,
+    message :: Maybe Text,
+    replaceWith :: Maybe Text
+  }
+  deriving stock (Show)
+
+instance FromJSON Deprecated where
+  parseJSON = withObject "Deprecated" $ \o ->
+    Deprecated
+      <$> o .: "since"
+      <*> o .:? "message"
+      <*> o .:? "replace_with"
+
+data TypeDesc
+  = TypeDesc_Enum
+      { isBitField :: Bool,
+        values :: [EnumValue]
+      }
+  | TypeDesc_Handle
+      { parent :: Maybe Text,
+        isConst :: Bool,
+        isUninitialized :: Bool
+      }
+  | TypeDesc_Alias
+      { typ :: Text
+      }
+  | TypeDesc_Struct
+      { members :: [StructMember]
+      }
+  | TypeDesc_Function
+      { arguments :: [FunctionArgument],
+        returnValue :: Maybe FunctionReturnValue
+      }
+  deriving stock (Show)
+
+data FunctionArgument = FunctionArgument
+  { typ :: Text,
+    name :: Maybe Text,
+    description :: Maybe Text
+  }
+  deriving stock (Show)
+
+instance FromJSON FunctionArgument where
+  parseJSON = withObject "FunctionArgument" $ \o ->
+    FunctionArgument
+      <$> o .: "type"
+      <*> o .:? "name"
+      <*> getMultilineTextMay o "description"
+
+data FunctionReturnValue = FunctionReturnValue
+  { typ :: Text,
+    description :: Maybe Text
+  }
+  deriving stock (Show)
+
+instance FromJSON FunctionReturnValue where
+  parseJSON = withObject "FunctionReturnValue" $ \o ->
+    FunctionReturnValue
+      <$> o .: "type"
+      <*> getMultilineTextMay o "description"
+
+data StructMember = StructMember
+  { name :: Text,
+    typ :: Text,
+    description :: Maybe Text
+  }
+  deriving stock (Show)
+
+instance FromJSON StructMember where
+  parseJSON = withObject "StructMember" $ \o ->
+    StructMember
+      <$> o .: "name"
+      <*> o .: "type"
+      <*> getMultilineTextMay o "description"
+
+data EnumValue = EnumValue
+  { name :: Text,
+    value :: Int,
+    description :: Maybe Text
+  }
+  deriving stock (Show)
+
+instance FromJSON EnumValue where
+  parseJSON = withObject "EnumValue" $ \o ->
+    EnumValue
+      <$> o .: "name"
+      <*> o .: "value"
+      <*> getMultilineTextMay o "description"
+
+data Kind
+  = Kind_Enum
+  | Kind_Handle
+  | Kind_Alias
+  | Kind_Struct
+  | Kind_Function
+  deriving stock (Show)
+
+instance FromJSON Kind where
+  parseJSON = withText "Kind" $ \t -> pure $ case t of
+    "enum" -> Kind_Enum
+    "handle" -> Kind_Handle
+    "alias" -> Kind_Alias
+    "struct" -> Kind_Struct
+    "function" -> Kind_Function
+    _ -> error "Unknown kind"
+
+data InterfaceItem = InterfaceItem
+  { name :: Text,
+    returnValue :: Maybe FunctionReturnValue,
+    arguments :: [FunctionArgument],
+    description :: Text,
+    since :: Text,
+    deprecated :: Maybe Deprecated,
+    see :: [Text],
+    legacyTypeName :: Maybe Text
+  }
+  deriving stock (Show)
+
+instance FromJSON InterfaceItem where
+  parseJSON = withObject "InterfaceItem" $ \o ->
+    InterfaceItem
+      <$> o .: "name"
+      <*> o .:? "return_value"
+      <*> o .: "arguments"
+      <*> getMultilineText o "description"
+      <*> o .: "since"
+      <*> o .:? "deprecated"
+      <*> o .:? "see" .!= []
+      <*> o .:? "legacy_type_name"
+
+-- | Read and parse a gdextension_interface.h file
+readGdExtensionInterface ::
+  -- | Path to the gdextension_interface.h file
+  FilePath ->
+  IO (Either String GdExtensionInterface)
+readGdExtensionInterface interfaceJsonFilePath = eitherDecode <$> BS.readFile interfaceJsonFilePath
+
+getMultilineText :: Object -> Key -> Parser Text
+getMultilineText obj key = T.unlines <$> obj .: key
+
+getMultilineTextMay :: Object -> Key -> Parser (Maybe Text)
+getMultilineTextMay obj key = fmap T.unlines <$> obj .:? key

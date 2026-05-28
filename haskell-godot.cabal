@@ -60,12 +60,10 @@ library
 
     -- Modules exported by the library.
     exposed-modules:
-        MyLib,
-    other-modules:
-        GodotExtensionApi,
-        GodotExtensionInterface,
-        TH,
-        TValue
+        ExtensionApi,
+        GdExtensionInterface
+
+    -- other-modules:
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -75,15 +73,12 @@ library
 
     -- Other library packages from which modules are imported.
     build-depends:
-        base ^>=4.18.3.0
-        , aeson == 2.2.2.0
-        , bytestring == 0.12.2.0
+        base
+        , aeson >= 2
+        , bytestring >= 0.12
         , containers
-        , generic-aeson == 0.2.0.14
-        , language-c == 0.10.1
-        , pretty-simple
-        , template-haskell == 2.20.0.0
-        , text == 2.1.4
+        , generic-aeson >= 0.2
+        , text >= 2
 
     -- Directories containing source files.
     hs-source-dirs:   lib
@@ -91,16 +86,7 @@ library
     -- Base language which the package is written in.
     default-language: GHC2021
 
-executable hgodot
-    import: warnings
-    default-language: GHC2021
-    hs-source-dirs: bin
-    main-is: Main.hs
-    build-depends:
-        base ^>=4.18.3.0,
-        haskell-godot
-
-test-suite haskell-godot-test
+executable main
     -- Import common warning flags.
     import:           warnings
 
@@ -113,16 +99,14 @@ test-suite haskell-godot-test
     -- LANGUAGE extensions used by modules in this package.
     -- other-extensions:
 
-    -- The interface type and version of the test suite.
-    type:             exitcode-stdio-1.0
-
     -- Directories containing source files.
-    hs-source-dirs:   test
+    hs-source-dirs:   bin
 
     -- The entrypoint to the test suite.
     main-is:          Main.hs
 
     -- Test dependencies.
     build-depends:
-        base ^>=4.18.3.0,
-        haskell-godot
+        base
+        , haskell-godot
+        , pretty-simple

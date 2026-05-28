@@ -3,7 +3,7 @@
 {-# LANGUAGE DuplicateRecordFields #-}
 {-# LANGUAGE NoFieldSelectors #-}
 
-module GodotExtensionApi where
+module ExtensionApi where
 
 import Data.Aeson (FromJSON (..))
 import Data.Text

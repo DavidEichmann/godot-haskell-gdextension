@@ -1,6 +1,9 @@
 module Main (main) where
 
-import MyLib
+import GdExtensionInterface
+import Text.Pretty.Simple (pPrint)
 
 main :: IO ()
-main = putStrLn "Hello Main!"
+main = do
+  iface <- readGdExtensionInterface "./godot-api/gdextension_interface.4.6.2.json"
+  pPrint iface
