@@ -1,17 +1,18 @@
 {-# LANGUAGE DeriveAnyClass #-}
 {-# LANGUAGE DerivingStrategies #-}
 {-# LANGUAGE DuplicateRecordFields #-}
+{-# LANGUAGE OverloadedStrings #-}
 {-# LANGUAGE NoFieldSelectors #-}
 
 module ExtensionApi where
 
-import Data.Aeson (FromJSON (..))
+import Data.Aeson (FromJSON (..), withObject, (.!=), (.:), (.:?))
 import Data.Text
 import GHC.Generics (Generic)
 import Generics.Generic.Aeson (Settings (..), defaultSettings, gparseJsonWithSettings)
 import Prelude hiding (Enum)
 
-data GodotExtensionApi = GodotExtensionApi
+data ExtensionApi = ExtensionApi
   { header :: Header,
     builtin_class_sizes :: [BuiltinClassSizes],
     builtin_class_member_offsets :: [BuiltinClassMemberOffsetsBuildConfig],
@@ -81,13 +82,23 @@ data GlobalEnum = GlobalEnum
 
 data GlobalEnumValue = GlobalEnumValue
   { name :: Text,
-    value :: Int
+    is_bitfield :: Bool,
+    value :: Int,
+    description :: Maybe Text
   }
-  deriving stock (Show, Generic)
-  deriving anyclass (FromJSON)
+  deriving stock (Show)
+
+instance FromJSON GlobalEnumValue where
+  parseJSON = withObject "GlobalEnumValue" $ \o ->
+    GlobalEnumValue
+      <$> o .: "name"
+      <*> o .:? "is_bitfield" .!= False
+      <*> o .: "value"
+      <*> o .:? "description"
 
 data UtilityFunction = UtilityFunction
-  { name :: Text,
+  { description :: Maybe Text,
+    name :: Text,
     return_type :: Maybe Text,
     category :: Text,
     is_vararg :: Bool,
@@ -100,7 +111,8 @@ data UtilityFunction = UtilityFunction
 data FunctionArgument = FunctionArgument
   { name :: Text,
     _type :: Text,
-    default_value :: Maybe Text
+    default_value :: Maybe Text,
+    description :: Maybe Text
   }
   deriving stock (Show, Generic)
 
@@ -118,7 +130,8 @@ data BuiltinClass = BuiltinClass
     operators :: [Operator],
     constructors :: [Constructor],
     methods :: Maybe [Method],
-    has_destructor :: Bool
+    has_destructor :: Bool,
+    description :: Maybe Text
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON)
@@ -126,14 +139,16 @@ data BuiltinClass = BuiltinClass
 data Operator = Operator
   { name :: Text,
     right_type :: Maybe Text,
-    return_type :: Text
+    return_type :: Text,
+    description :: Maybe Text
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON)
 
 data Constructor = Constructor
   { index :: Int,
-    arguments :: Maybe [FunctionArgument]
+    arguments :: Maybe [FunctionArgument],
+    description :: Maybe Text
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON)
@@ -145,7 +160,8 @@ data Method = Method
     is_const :: Bool,
     is_static :: Bool,
     hash :: Int,
-    arguments :: Maybe [FunctionArgument]
+    arguments :: Maybe [FunctionArgument],
+    description :: Maybe Text
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON)
@@ -156,7 +172,8 @@ data Class = Class
     is_instantiable :: Bool,
     inherits :: Maybe Text,
     api_type :: Text,
-    enums :: Maybe [Enum]
+    enums :: Maybe [Enum],
+    description :: Maybe Text
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON)
@@ -164,21 +181,24 @@ data Class = Class
 data Enum = Enum
   { name :: Text,
     is_bitfield :: Bool,
-    values :: [EnumValue]
+    values :: [EnumValue],
+    description :: Maybe Text
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON)
 
 data EnumValue = EnumValue
   { name :: Text,
-    value :: Int
+    value :: Int,
+    description :: Maybe Text
   }
   deriving stock (Show, Generic)
   deriving anyclass (FromJSON)
 
 data Singleton = Singleton
   { name :: Text,
-    _type :: Text
+    _type :: Text,
+    description :: Maybe Text
   }
   deriving stock (Show, Generic)
 

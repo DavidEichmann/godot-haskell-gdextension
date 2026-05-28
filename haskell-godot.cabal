@@ -110,3 +110,6 @@ executable main
         base
         , haskell-godot
         , pretty-simple
+        , aeson
+        , bytestring
+        , template-haskell
