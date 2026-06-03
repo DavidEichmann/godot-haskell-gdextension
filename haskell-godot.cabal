@@ -60,8 +60,10 @@ library
 
     -- Modules exported by the library.
     exposed-modules:
-        ExtensionApi,
-        GdExtensionInterface
+        ExtensionApi
+        , GdExtensionInterface
+        , GdExtensionInterfaceGen
+        , StringInterp
 
     -- other-modules:
 
@@ -79,6 +81,7 @@ library
         , containers
         , generic-aeson >= 0.2
         , text >= 2
+        , template-haskell
 
     -- Directories containing source files.
     hs-source-dirs:   lib
@@ -112,4 +115,5 @@ executable main
         , pretty-simple
         , aeson
         , bytestring
+        , text
         , template-haskell
